@@ -89,7 +89,7 @@ fn main() {
         image::imageops::FilterType::Nearest,
     );
 
-    let mut cropped = image::imageops::crop(
+    let cropped = image::imageops::crop(
         &mut img_buffer,
         0,
         0,
@@ -97,6 +97,8 @@ fn main() {
         screen_size.1 as u32,
     )
     .to_image();
+
+    let mut cropped = image::imageops::blur(&cropped, 5.0);
 
     let font = Vec::from(include_bytes!("nerd.ttf") as &[u8]);
     let font = rusttype::Font::try_from_vec(font).unwrap();
