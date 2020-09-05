@@ -166,15 +166,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "i3lock-rs"
-version = "0.1.0"
-dependencies = [
- "image",
- "imageproc",
- "x11",
-]
-
-[[package]]
 name = "image"
 version = "0.23.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -245,6 +236,17 @@ name = "lzw"
 version = "0.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7d947cbb889ed21c2a84be6ffbaebf5b4e0f4340638cba0444907e38b56be084"
+
+[[package]]
+name = "make-lock-img"
+version = "0.1.0"
+dependencies = [
+ "image",
+ "imageproc",
+ "rand",
+ "rusttype",
+ "x11",
+]
 
 [[package]]
 name = "matrixmultiply"
