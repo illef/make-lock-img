@@ -50,6 +50,40 @@ where
     }
 }
 
+fn calculate_resize_of_image(screen_size: (i32, i32), img_size: (u32, u32)) -> (u32, u32) {
+    let screen_height_ratio = screen_size.1 as f32 / screen_size.0 as f32;
+    let img_height_ratio = img_size.1 as f32 / img_size.0 as f32;
+
+    let scale_factor = if screen_height_ratio > img_height_ratio {
+        screen_size.1 as f32 / img_size.1 as f32
+    } else {
+        screen_size.0 as f32 / img_size.0 as f32
+    };
+
+    (
+        (img_size.0 as f32 * scale_factor) as u32,
+        (img_size.1 as f32 * scale_factor) as u32,
+    )
+}
+
+fn calculate_crop_x_y(screen_size: (i32, i32), img_size: (u32, u32)) -> (u32, u32) {
+    let (img_width, img_height) = img_size;
+    let (sc_width, sc_height) = screen_size;
+
+    let x = if img_width > sc_width as u32 {
+        (img_width - sc_width as u32) / 2
+    } else {
+        0
+    };
+
+    let y = if img_height > sc_height as u32 {
+        (img_height - sc_height as u32) / 2
+    } else {
+        0
+    };
+    (x, y)
+}
+
 fn main() {
     let screen_size = if let Some(size) = get_resolutions().into_iter().next() {
         size
@@ -80,19 +114,22 @@ fn main() {
         std::process::exit(1);
     };
 
-    let img_ratio = img.height() as f32 / img.width() as f32;
+    let (to_img_width, to_img_height) =
+        calculate_resize_of_image(screen_size, (img.width(), img.height()));
 
     let mut img_buffer = image::imageops::resize(
         &img,
-        screen_size.0 as u32,
-        (screen_size.0 as f32 * img_ratio) as u32,
+        to_img_width,
+        to_img_height,
         image::imageops::FilterType::Nearest,
     );
 
+    let (crop_x, crop_y) = calculate_crop_x_y(screen_size, (to_img_width, to_img_height));
+
     let cropped = image::imageops::crop(
         &mut img_buffer,
-        0,
-        0,
+        crop_x,
+        crop_y,
         screen_size.0 as u32,
         screen_size.1 as u32,
     )
@@ -127,4 +164,38 @@ fn main() {
     );
 
     cropped.save(out_path).unwrap();
+}
+
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn calculate_resize_of_image_test() {
+        let (w, h) = calculate_resize_of_image((200, 110), (100,50));
+        assert_eq!(h, 110);
+        assert_eq!(w, 220);
+
+        let (w, h) = calculate_resize_of_image((200, 90), (100,50));
+        assert_eq!(w, 200);
+        assert_eq!(h, 100);
+
+        let (w, h) = calculate_resize_of_image((100, 50), (200,110));
+        assert_eq!(h, 55);
+        assert_eq!(w, 100);
+
+        let (w, h) = calculate_resize_of_image((100, 50), (200,90));
+        assert_eq!(w, 111);
+        assert_eq!(h, 50);
+    }
+
+    #[test]
+    fn calculate_crop_x_y_test(){
+        let (x,y) = calculate_crop_x_y((200, 110), (210, 150));
+        assert_eq!(x, 5);
+        assert_eq!(y, 20);
+    }
+
 }
